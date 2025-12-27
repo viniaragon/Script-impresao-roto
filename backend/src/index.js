@@ -168,8 +168,8 @@ setInterval(() => {
 }, 30000);
 
 // Iniciar servidor
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+const PORT = parseInt(process.env.PORT, 10) || 3000;
+server.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('══════════════════════════════════════════');
     console.log('   🖨️  EchoLink Server iniciado!');
