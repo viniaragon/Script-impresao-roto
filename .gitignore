@@ -1,0 +1,41 @@
+# Dependências
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+build/
+*.exe
+
+# Ambiente
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Arquivos temporários
+temp/
+tmp/
+*.tmp
+
+# Configuração local do agente (contém UUID único)
+agent/config.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+.parcel-cache/

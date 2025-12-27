@@ -1,0 +1,19 @@
+{
+    "name": "echolink-frontend",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Dashboard web para gerenciar impressoras remotas - EchoLink",
+    "type": "module",
+    "scripts": {
+        "dev": "echo 'Frontend ainda não configurado - execute npm create vite@latest . -- --template react'",
+        "build": "echo 'Frontend ainda não configurado'",
+        "preview": "echo 'Frontend ainda não configurado'"
+    },
+    "keywords": [
+        "dashboard",
+        "printing",
+        "react"
+    ],
+    "author": "",
+    "license": "MIT"
+}

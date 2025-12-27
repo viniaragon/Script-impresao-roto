@@ -1,0 +1,30 @@
+{
+    "name": "echolink-project",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Sistema de Impressão Remota - EchoLink",
+    "workspaces": [
+        "backend",
+        "agent",
+        "frontend"
+    ],
+    "scripts": {
+        "dev:backend": "npm run dev -w backend",
+        "dev:agent": "npm run dev -w agent",
+        "dev:frontend": "npm run dev -w frontend",
+        "start:backend": "npm run start -w backend",
+        "start:agent": "npm run start -w agent",
+        "build:agent": "npm run build -w agent",
+        "install:all": "npm install"
+    },
+    "keywords": [
+        "printing",
+        "remote",
+        "websocket"
+    ],
+    "author": "",
+    "license": "MIT",
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
