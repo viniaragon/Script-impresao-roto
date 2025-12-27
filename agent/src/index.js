@@ -18,7 +18,7 @@ const { v4: uuidv4 } = require('uuid');
 // Configurações
 const CONFIG_PATH = path.join(__dirname, '..', 'config.json');
 const TEMP_DIR = path.join(__dirname, '..', 'temp');
-const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000';
+const SERVER_URL = process.env.SERVER_URL || 'https://echolink-backend-production.up.railway.app';
 
 // Garante que a pasta temp existe
 if (!fs.existsSync(TEMP_DIR)) {
