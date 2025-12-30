@@ -12,6 +12,8 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const multer = require('multer');
+const { uploadFile } = require('./firebase');
 
 const app = express();
 const server = http.createServer(app);
@@ -61,6 +63,51 @@ app.get('/api/agents', (req, res) => {
         });
     });
     res.json(agents);
+});
+
+// Configuração do Multer para upload de arquivos em memória
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 50 * 1024 * 1024, // Limite de 50MB
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/pdf') {
+            cb(null, true);
+        } else {
+            cb(new Error('Apenas arquivos PDF são permitidos'), false);
+        }
+    }
+});
+
+// Endpoint de upload de PDF
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+        }
+
+        console.log(`📤 Upload recebido: ${req.file.originalname} (${req.file.size} bytes)`);
+
+        // Faz upload para o Firebase Storage
+        const fileUrl = await uploadFile(
+            req.file.buffer,
+            req.file.originalname,
+            req.file.mimetype
+        );
+
+        console.log(`✅ Upload concluído: ${fileUrl.substring(0, 80)}...`);
+
+        res.json({
+            success: true,
+            url: fileUrl,
+            fileName: req.file.originalname,
+            size: req.file.size
+        });
+    } catch (error) {
+        console.error('❌ Erro no upload:', error.message);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Gerenciamento de conexões WebSocket

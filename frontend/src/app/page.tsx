@@ -28,26 +28,40 @@ export default function Home() {
     setIsSending(true);
 
     try {
-      // Para MVP, vamos usar uma URL pública do arquivo
-      // Em produção, você faria upload para um storage (Firebase, S3, etc)
-      // e usaria a URL retornada
+      // Upload do PDF para Firebase Storage via backend
+      const formData = new FormData();
+      formData.append('file', selectedFile);
 
-      // SIMULAÇÃO: Criando uma URL temporária local
-      // TODO: Implementar upload real para storage
-      const fileUrl = URL.createObjectURL(selectedFile);
+      const uploadResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL || 'https://echolink-backend-production.up.railway.app'}/api/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
+      if (!uploadResponse.ok) {
+        const error = await uploadResponse.json();
+        throw new Error(error.error || 'Erro no upload');
+      }
+
+      const { url: fileUrl, fileName } = await uploadResponse.json();
+      console.log('✅ Upload concluído:', fileUrl.substring(0, 80) + '...');
+
+      // Envia job de impressão com a URL do Firebase
       sendPrintJob(
         selectedPrinter.agentId,
         selectedPrinter.printerId,
         fileUrl,
-        selectedFile.name
+        fileName
       );
 
       // Limpa seleções após envio
       setSelectedFile(null);
       setSelectedPrinter(null);
     } catch (error) {
-      console.error('Erro ao enviar job:', error);
+      console.error('❌ Erro ao enviar job:', error);
+      alert(`Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setIsSending(false);
     }
