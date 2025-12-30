@@ -283,19 +283,28 @@ async function main() {
         console.log(`🔄 Reconectado após ${attemptNumber} tentativa(s)`);
     });
 
-    // Atualiza lista de impressoras periodicamente (a cada 5 minutos)
+    // Heartbeat: Ping a cada 30 segundos para manter conexão ativa
+    setInterval(() => {
+        if (socket.connected) {
+            socket.emit('agent:heartbeat', { agentId: config.agentId });
+        }
+    }, 30 * 1000);
+
+    // Atualiza lista de impressoras periodicamente (a cada 1 minuto)
     setInterval(async () => {
-        const updatedPrinters = await listPrinters();
-        socket.emit('agent:update-printers', {
-            agentId: config.agentId,
-            printers: updatedPrinters.map(p => ({
-                id: p.Name.replace(/\s+/g, '_'),
-                name: p.Name,
-                driver: p.DriverName,
-                status: p.PrinterStatus
-            }))
-        });
-    }, 5 * 60 * 1000);
+        if (socket.connected) {
+            const updatedPrinters = await listPrinters();
+            socket.emit('agent:update-printers', {
+                agentId: config.agentId,
+                printers: updatedPrinters.map(p => ({
+                    id: p.Name.replace(/\s+/g, '_'),
+                    name: p.Name,
+                    driver: p.DriverName,
+                    status: p.PrinterStatus
+                }))
+            });
+        }
+    }, 60 * 1000);
 
     // Mantém o processo rodando
     console.log('\n⏳ Aguardando jobs de impressão...\n');
