@@ -13,14 +13,24 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const http = require('http');
+const os = require('os');
 const { v4: uuidv4 } = require('uuid');
 
-// Configurações
-const CONFIG_PATH = path.join(__dirname, '..', 'config.json');
-const TEMP_DIR = path.join(__dirname, '..', 'temp');
+// Detecta se está rodando como executável PKG
+const isPkg = typeof process.pkg !== 'undefined';
+
+// Diretório base: se for PKG usa a pasta do executável, senão usa __dirname
+const BASE_DIR = isPkg
+    ? path.dirname(process.execPath)
+    : path.join(__dirname, '..');
+
+// Configurações - caminhos externos ao snapshot
+const CONFIG_PATH = path.join(BASE_DIR, 'echolink-config.json');
+const TEMP_DIR = path.join(os.tmpdir(), 'echolink-temp');
+const TOOLS_DIR = path.join(BASE_DIR, 'tools');
 const SERVER_URL = process.env.SERVER_URL || 'https://echolink-backend-production.up.railway.app';
 
-// Garante que a pasta temp existe
+// Garante que a pasta temp existe (no sistema, não no snapshot)
 if (!fs.existsSync(TEMP_DIR)) {
     fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
@@ -59,14 +69,15 @@ function loadOrCreateAgentId() {
  */
 function listPrinters() {
     return new Promise((resolve, reject) => {
+        // Lista todas as impressoras com status Normal
+        // Remove apenas Fax, OneNote e XPS (que nunca são úteis)
+        // Mantém PDF para testes
         const psCommand = `
       Get-Printer | Where-Object { 
         $_.PrinterStatus -eq 'Normal' -and 
         $_.Name -notlike '*Fax*' -and 
         $_.Name -notlike '*OneNote*' -and 
-        $_.Name -notlike '*XPS*' -and 
-        $_.Name -notlike '*Microsoft Print*' -and
-        $_.Name -notlike '*PDF*'
+        $_.Name -notlike '*XPS*'
       } | Select-Object Name, PrinterStatus, DriverName, PortName | ConvertTo-Json
     `;
 
@@ -126,8 +137,8 @@ function downloadFile(url, destPath) {
  */
 function printPDF(filePath, printerName) {
     return new Promise((resolve, reject) => {
-        // Opção 1: Usando PDFtoPrinter (precisa estar na pasta tools)
-        const pdfToPrinter = path.join(__dirname, '..', 'tools', 'PDFtoPrinter.exe');
+        // Opção 1: Usando PDFtoPrinter (precisa estar na pasta tools junto ao .exe)
+        const pdfToPrinter = path.join(TOOLS_DIR, 'PDFtoPrinter.exe');
 
         // Opção 2: Usando comando nativo do Windows (menos confiável)
         let command;
