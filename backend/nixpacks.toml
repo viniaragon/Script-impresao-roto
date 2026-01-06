@@ -1,10 +1,14 @@
 # Configuração Nixpacks para Railway com Bun
+# Ref: https://nixpacks.com/docs/providers/node
 
 [phases.setup]
 nixPkgs = ["bun"]
 
-[phases.install]
-cmds = ["bun install"]
+[phases.install]  
+cmds = ["bun install --frozen-lockfile"]
+
+[phases.build]
+cmds = []
 
 [start]
 cmd = "bun run src/index.js"
