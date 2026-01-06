@@ -1,8 +1,10 @@
+# Configuração Nixpacks para Railway com Bun
+
 [phases.setup]
-nixPkgs = ["nodejs_18"]
+nixPkgs = ["bun"]
 
 [phases.install]
-cmds = ["npm ci"]
+cmds = ["bun install"]
 
 [start]
-cmd = "node src/index.js"
+cmd = "bun run src/index.js"

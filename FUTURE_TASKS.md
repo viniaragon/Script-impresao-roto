@@ -5,12 +5,12 @@
 **Prioridade:** Alta  
 **Benefícios:** Startup 4x mais rápido, menor uso de memória, compilação nativa
 
-### Fase 1: Backend (Railway)
-- [ ] Instalar Bun no ambiente de desenvolvimento
-- [ ] Substituir `npm` por `bun` para gerenciamento de dependências
-- [ ] Testar `socket.io` com Bun (compatibilidade)
-- [ ] Testar `firebase-admin` com Bun (compatibilidade)
-- [ ] Atualizar `nixpacks.toml` para usar Bun no Railway
+### Fase 1: Backend (Railway) ✅ EM PROGRESSO
+- [x] Instalar Bun no ambiente de desenvolvimento
+- [x] Substituir `npm` por `bun` para gerenciamento de dependências
+- [x] Testar `socket.io` com Bun (compatibilidade)
+- [x] Testar `firebase-admin` com Bun (compatibilidade)
+- [x] Atualizar `nixpacks.toml` para usar Bun no Railway
 - [ ] Testar deploy no Railway com Bun
 
 ### Fase 2: Frontend (Vercel)
@@ -45,13 +45,6 @@ Migrar o Agent para Electron para adicionar:
 - Opção de iniciar com o Windows
 - Botão para pausar/encerrar o agente
 - Notificações desktop quando receber jobs
-
-### Implementação Sugerida
-1. Instalar Electron e electron-builder
-2. Criar janela principal com status do agente
-3. Implementar tray icon com menu de contexto
-4. Usar electron-store para persistência
-5. Configurar autoLaunch para iniciar com Windows
 
 ---
 
