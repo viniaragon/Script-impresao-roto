@@ -28,6 +28,7 @@ tmp/
 
 # Configuração local do agente (contém UUID único)
 agent/config.json
+**/echolink-config.json
 
 # IDE
 .vscode/
