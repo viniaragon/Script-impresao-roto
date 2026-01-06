@@ -18,12 +18,19 @@ const { uploadFile } = require('./firebase');
 const app = express();
 const server = http.createServer(app);
 
-// Configuração do Socket.io com CORS
+// Configuração do Socket.io com CORS e timeouts ajustados
 const io = new Server(server, {
     cors: {
         origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-        methods: ['GET', 'POST']
-    }
+        methods: ['GET', 'POST'],
+        credentials: true
+    },
+    // Configurações para conexão mais estável
+    pingTimeout: 60000,         // 60s antes de considerar desconectado
+    pingInterval: 25000,        // Ping a cada 25s
+    upgradeTimeout: 30000,      // 30s para upgrade para WebSocket
+    transports: ['websocket', 'polling'],  // Prioriza WebSocket
+    allowUpgrades: true
 });
 
 // Middleware
