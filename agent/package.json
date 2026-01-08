@@ -1,35 +1,21 @@
 {
-    "name": "echolink-agent",
-    "version": "1.0.0",
-    "private": true,
-    "description": "Agente de impressão para PCs clientes - EchoLink",
-    "main": "src/index.js",
-    "bin": "src/index.js",
-    "scripts": {
-        "dev": "node --watch src/index.js",
-        "start": "node src/index.js",
-        "build": "pkg . --targets node18-win-x64 --output dist/EchoLinkAgent.exe"
-    },
-    "pkg": {
-        "assets": [
-            "tools/**/*",
-            "config.json"
-        ],
-        "outputPath": "dist"
-    },
-    "keywords": [
-        "printing",
-        "agent",
-        "windows"
-    ],
-    "author": "",
-    "license": "MIT",
-    "dependencies": {
-        "socket.io-client": "^4.7.2",
-        "axios": "^1.6.2",
-        "uuid": "^9.0.1"
-    },
-    "devDependencies": {
-        "pkg": "^5.8.1"
-    }
+  "name": "echolink-agent",
+  "version": "1.0.0",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run index.ts",
+    "build": "bun build index.ts --compile --outfile=dist/EchoLinkAgent.exe",
+    "start": "bun run index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.90.1"
+  }
 }

@@ -1,29 +1,15 @@
-# EchoLink Agent
+# agent
 
-Agente de impressão para PCs Windows.
-
-## Desenvolvimento
+To install dependencies:
 
 ```bash
-npm install
-npm run dev
+bun install
 ```
 
-## Build (Gerar .exe)
+To run:
 
 ```bash
-npm run build
+bun run index.ts
 ```
 
-O executável será gerado em `dist/EchoLinkAgent.exe`
-
-## Ferramentas Necessárias
-
-Baixe o PDFtoPrinter.exe e coloque na pasta `tools/`:
-- http://www.interapptive.com/forum/download/file.php?id=29
-
-## Variáveis de Ambiente
-
-```
-SERVER_URL=http://seu-servidor:3000
-```
+This project was created using `bun init` in bun v1.3.5. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
