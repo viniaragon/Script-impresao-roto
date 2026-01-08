@@ -188,10 +188,7 @@ async function main() {
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        // Prioriza WebSocket para conexão mais estável
-        transports: ['websocket', 'polling'],
-        timeout: 60000  // 60s timeout
+        reconnectionDelayMax: 5000
     });
 
     // Evento: Conectado

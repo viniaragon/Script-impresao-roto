@@ -6,9 +6,16 @@
     "main": "src/index.js",
     "bin": "src/index.js",
     "scripts": {
-        "dev": "bun --watch src/index.js",
-        "start": "bun run src/index.js",
-        "build": "bun build src/index.js --compile --outfile dist/EchoLinkAgent.exe --target=bun-windows-x64"
+        "dev": "node --watch src/index.js",
+        "start": "node src/index.js",
+        "build": "pkg . --targets node18-win-x64 --output dist/EchoLinkAgent.exe"
+    },
+    "pkg": {
+        "assets": [
+            "tools/**/*",
+            "config.json"
+        ],
+        "outputPath": "dist"
     },
     "keywords": [
         "printing",
@@ -21,5 +28,8 @@
         "socket.io-client": "^4.7.2",
         "axios": "^1.6.2",
         "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "pkg": "^5.8.1"
     }
 }
