@@ -1,13 +1,8 @@
-# Configuração Nixpacks para Railway com Bun
-# Desabilita detecção automática e força uso de Bun
-
-providers = []
-
 [phases.setup]
-nixPkgs = ["bun"]
+nixPkgs = ["nodejs_18"]
 
-[phases.install]  
-cmds = ["bun install"]
+[phases.install]
+cmds = ["npm ci"]
 
 [start]
-cmd = "bun run src/index.js"
+cmd = "node src/index.js"

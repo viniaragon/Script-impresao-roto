@@ -6,25 +6,9 @@
 const admin = require('firebase-admin');
 
 // Credenciais do Firebase (de variável de ambiente em produção)
-let serviceAccount;
-
-if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
-    // Opção 1: Base64 encoded (mais seguro para env vars)
-    const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8');
-    serviceAccount = JSON.parse(decoded);
-} else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    // Opção 2: JSON direto (pode ter problemas com escape)
-    try {
-        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    } catch (error) {
-        console.error('Erro ao parsear FIREBASE_SERVICE_ACCOUNT:', error.message);
-        console.error('Valor recebido (primeiros 100 chars):', process.env.FIREBASE_SERVICE_ACCOUNT?.substring(0, 100));
-        throw new Error('FIREBASE_SERVICE_ACCOUNT inválido. Use FIREBASE_SERVICE_ACCOUNT_BASE64 como alternativa.');
-    }
-} else {
-    // Opção 3: Arquivo local (desenvolvimento)
-    serviceAccount = require('./serviceAccountKey.json');
-}
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    : require('./serviceAccountKey.json');
 
 // Inicializa o Firebase Admin
 if (!admin.apps.length) {
