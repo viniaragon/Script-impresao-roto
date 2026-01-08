@@ -11,12 +11,16 @@ require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const { Server: BunEngine } = require('@socket.io/bun-engine');
 const cors = require('cors');
 const multer = require('multer');
 const { uploadFile } = require('./firebase');
 
 const app = express();
 const server = http.createServer(app);
+
+// Detecta se está rodando no Bun e configura engine apropriada
+const isBun = typeof Bun !== 'undefined';
 
 // Configuração do Socket.io com CORS e timeouts ajustados
 const io = new Server(server, {
@@ -32,6 +36,12 @@ const io = new Server(server, {
     transports: ['websocket', 'polling'],  // Prioriza WebSocket
     allowUpgrades: true
 });
+
+// Bind Bun engine se estiver rodando no Bun
+if (isBun) {
+    io.bind(new BunEngine());
+    console.log('🚀 Usando @socket.io/bun-engine para melhor performance');
+}
 
 // Middleware
 app.use(cors());
