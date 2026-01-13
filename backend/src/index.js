@@ -172,13 +172,13 @@ io.on('connection', (socket) => {
 
     // Evento: Dashboard envia job de impressão
     socket.on('print:send-job', (data) => {
-        const { agentId, printerId, fileUrl, fileName } = data;
+        const { jobId, agentId, printerId, fileUrl, fileName } = data;
 
         const agent = connectedAgents.get(agentId);
         if (agent) {
-            // Encontra o socket do agente e envia o job
+            // Encontra o socket do agente e envia o job (usa o jobId do frontend)
             io.to(agent.socketId).emit('print:new-job', {
-                jobId: `job-${Date.now()}`,
+                jobId: jobId || `job-${Date.now()}`, // Usa o ID do frontend ou gera um novo
                 printerId,
                 fileUrl,
                 fileName

@@ -104,8 +104,9 @@ export function useSocket() {
         };
         setJobs(prev => [...prev, newJob]);
 
-        // Envia para o servidor
+        // Envia para o servidor (inclui jobId para rastreamento)
         socketRef.current.emit('print:send-job', {
+            jobId,
             agentId,
             printerId,
             fileUrl,

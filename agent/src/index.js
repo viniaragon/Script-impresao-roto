@@ -155,7 +155,7 @@ function printFile(filePath, printerName) {
         } else {
             // Outros formatos (imagens, documentos): usa shell verb nativo do Windows
             // Nota: Para DOC/DOCX/XLS/XLSX, é necessário ter o aplicativo associado instalado
-            command = `powershell -Command "Start-Process -FilePath '${filePath}' -Verb Print -Wait"`;
+            command = `powershell -Command "Start-Process -FilePath '${filePath}' -Verb PrintTo -ArgumentList '${printerName}' -Wait"`;
         }
 
         console.log(`🖨️ Executando: ${command}`);

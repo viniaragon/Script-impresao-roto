@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Printer, Wifi, WifiOff, RefreshCw, Send } from 'lucide-react';
 import { useSocket } from '@/hooks/useSocket';
 import { AgentCard } from '@/components/AgentCard';
@@ -10,9 +10,22 @@ import { Printer as PrinterType } from '@/lib/constants';
 
 export default function Home() {
   const { isConnected, agents, jobs, sendPrintJob, clearJob, refreshAgents } = useSocket();
-  const [selectedPrinter, setSelectedPrinter] = useState<{ agentId: string; printerId: string; printerName: string } | null>(null);
+  const [selectedPrinter, setSelectedPrinter] = useState<{ agentId: string; printerId: string; printerName: string } | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('selectedPrinter');
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSending, setIsSending] = useState(false);
+
+  // Salvar no sessionStorage quando a impressora mudar
+  useEffect(() => {
+    if (selectedPrinter) {
+      sessionStorage.setItem('selectedPrinter', JSON.stringify(selectedPrinter));
+    }
+  }, [selectedPrinter]);
 
   const handleSelectPrinter = useCallback((agentId: string, printer: PrinterType) => {
     setSelectedPrinter({
@@ -56,9 +69,8 @@ export default function Home() {
         fileName
       );
 
-      // Limpa seleções após envio
+      // Limpa apenas o arquivo após envio (mantém a impressora selecionada)
       setSelectedFile(null);
-      setSelectedPrinter(null);
     } catch (error) {
       console.error('❌ Erro ao enviar job:', error);
       alert(`Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
