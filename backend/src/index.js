@@ -174,6 +174,13 @@ io.on('connection', (socket) => {
     socket.on('print:send-job', (data) => {
         const { jobId, agentId, printerId, fileUrl, fileName } = data;
 
+        // Debug: lista agentes conectados
+        console.log(`📥 Job recebido - agentId: ${agentId}, printerId: ${printerId}`);
+        console.log(`   Agentes conectados: ${connectedAgents.size}`);
+        connectedAgents.forEach((info, id) => {
+            console.log(`   - ${id} (socket: ${info.socketId})`);
+        });
+
         const agent = connectedAgents.get(agentId);
         if (agent) {
             // Encontra o socket do agente e envia o job (usa o jobId do frontend)
@@ -186,6 +193,7 @@ io.on('connection', (socket) => {
 
             console.log(`📄 Job enviado para ${agentId}: ${fileName}`);
         } else {
+            console.log(`❌ Agente não encontrado: ${agentId}`);
             socket.emit('print:error', { message: 'Agente não encontrado' });
         }
     });

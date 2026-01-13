@@ -1,0 +1,38 @@
+{
+    "name": "echolink-digitadora",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Agente de monitoramento de pasta para envio automático de impressão - EchoLink",
+    "main": "src/index.js",
+    "bin": "src/index.js",
+    "scripts": {
+        "dev": "node --watch src/index.js",
+        "start": "node src/index.js",
+        "build": "pkg . --targets node18-win-x64 --output dist/EchoLinkDigitadora.exe"
+    },
+    "pkg": {
+        "assets": [
+            "config.json"
+        ],
+        "outputPath": "dist"
+    },
+    "keywords": [
+        "file-watcher",
+        "printing",
+        "agent",
+        "windows"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "socket.io-client": "^4.7.2",
+        "chokidar": "^3.5.3",
+        "uuid": "^9.0.1",
+        "enquirer": "^2.4.1",
+        "form-data": "^4.0.0",
+        "node-fetch": "^2.7.0"
+    },
+    "devDependencies": {
+        "pkg": "^5.8.1"
+    }
+}
