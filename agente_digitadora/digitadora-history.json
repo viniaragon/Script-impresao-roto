@@ -7,6 +7,26 @@
       "jobId": "job-1768301266821-9b91d9a8",
       "sentAt": "2026-01-13T10:47:46.837Z",
       "status": "pending"
+    },
+    "bd88130dde24f6c8a3ab154a8b9b28e5": {
+      "fileName": "KAIQUE ROCHA GUIMARAES.pdf",
+      "filePath": "C:\\Users\\genes\\Downloads\\print\\KAIQUE ROCHA GUIMARAES.pdf",
+      "hash": "bd88130dde24f6c8a3ab154a8b9b28e5",
+      "jobId": "job-1768301740045-636a09e1",
+      "sentAt": "2026-01-13T10:55:40.049Z",
+      "status": "completed",
+      "lastUpdate": "2026-01-13T10:55:58.816Z",
+      "message": "Impressão concluída!"
+    },
+    "f1b92c4211fc475293b78a81db8f99c0": {
+      "fileName": "ORÇ. 44397 pdf.pdf",
+      "filePath": "C:\\Users\\genes\\Downloads\\print\\ORÇ. 44397 pdf.pdf",
+      "hash": "f1b92c4211fc475293b78a81db8f99c0",
+      "jobId": "job-1768301781643-ffaf5f6f",
+      "sentAt": "2026-01-13T10:56:21.649Z",
+      "status": "completed",
+      "lastUpdate": "2026-01-13T10:56:42.886Z",
+      "message": "Impressão concluída!"
     }
   }
 }

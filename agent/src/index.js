@@ -235,9 +235,10 @@ async function main() {
                 message: 'Baixando arquivo...'
             });
 
-            // Baixa o arquivo (mantém a extensão original)
-            const ext = path.extname(job.fileName) || '.pdf';
-            const tempFile = path.join(TEMP_DIR, `${job.jobId}${ext}`);
+            // Baixa o arquivo (mantém o nome original para compatibilidade com apps)
+            // Sanitiza o nome do arquivo para remover caracteres inválidos
+            const safeFileName = job.fileName.replace(/[<>:"/\\|?*]/g, '_');
+            const tempFile = path.join(TEMP_DIR, `${job.jobId}_${safeFileName}`);
             await downloadFile(job.fileUrl, tempFile);
             console.log('   ✓ Download concluído');
 
@@ -253,8 +254,17 @@ async function main() {
             await printFile(tempFile, printerName);
             console.log('   ✓ Enviado para impressora');
 
-            // Limpa arquivo temporário
-            fs.unlinkSync(tempFile);
+            // Aguarda um tempo antes de limpar o arquivo temporário
+            // (necessário para DOC/DOCX pois o Word precisa de tempo para processar)
+            setTimeout(() => {
+                try {
+                    if (fs.existsSync(tempFile)) {
+                        fs.unlinkSync(tempFile);
+                    }
+                } catch (e) {
+                    // Ignora erro se arquivo já foi removido
+                }
+            }, 30000); // 30 segundos
 
             // Reporta status: completed
             socket.emit('print:job-status', {

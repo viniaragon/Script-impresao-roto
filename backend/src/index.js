@@ -13,7 +13,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const multer = require('multer');
-const { uploadFile } = require('./firebase');
+const { uploadFile, db, deleteFile } = require('./firebase');
 
 const app = express();
 const server = http.createServer(app);
@@ -94,7 +94,7 @@ const upload = multer({
     }
 });
 
-// Endpoint de upload de PDF
+// Endpoint de upload de arquivo
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
@@ -103,23 +103,121 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 
         console.log(`📤 Upload recebido: ${req.file.originalname} (${req.file.size} bytes)`);
 
-        // Faz upload para o Firebase Storage
-        const fileUrl = await uploadFile(
+        // Faz upload para o Firebase Storage e salva metadados no Firestore
+        const result = await uploadFile(
             req.file.buffer,
             req.file.originalname,
-            req.file.mimetype
+            req.file.mimetype,
+            req.file.size
         );
 
-        console.log(`✅ Upload concluído: ${fileUrl.substring(0, 80)}...`);
+        console.log(`✅ Upload concluído: ${result.url.substring(0, 80)}...`);
+        if (result.metadata) {
+            console.log(`   📋 Metadados: ${result.metadata.examType} | ${result.metadata.patientName}`);
+        }
 
         res.json({
             success: true,
-            url: fileUrl,
+            url: result.url,
+            fileId: result.fileId,
             fileName: req.file.originalname,
-            size: req.file.size
+            size: req.file.size,
+            metadata: result.metadata
         });
     } catch (error) {
         console.error('❌ Erro no upload:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint para listar arquivos com filtros opcionais
+app.get('/api/files', async (req, res) => {
+    try {
+        const { examType, patientName, startDate, endDate, limit = 50 } = req.query;
+
+        let query = db.collection('files').orderBy('uploadedAt', 'desc');
+
+        // Aplica filtros
+        if (examType) {
+            query = query.where('examType', '==', examType.toUpperCase());
+        }
+
+        // Nota: Firestore não suporta busca parcial, então patientName precisa ser exato
+        if (patientName) {
+            query = query.where('patientName', '==', patientName);
+        }
+
+        if (startDate) {
+            query = query.where('examDate', '>=', new Date(startDate));
+        }
+
+        if (endDate) {
+            query = query.where('examDate', '<=', new Date(endDate));
+        }
+
+        query = query.limit(parseInt(limit));
+
+        const snapshot = await query.get();
+        const files = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            uploadedAt: doc.data().uploadedAt?.toDate?.()?.toISOString() || null,
+            examDate: doc.data().examDate?.toDate?.()?.toISOString() || null
+        }));
+
+        res.json(files);
+    } catch (error) {
+        console.error('❌ Erro ao listar arquivos:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint para obter detalhes de um arquivo
+app.get('/api/files/:id', async (req, res) => {
+    try {
+        const doc = await db.collection('files').doc(req.params.id).get();
+
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Arquivo não encontrado' });
+        }
+
+        const data = doc.data();
+        res.json({
+            id: doc.id,
+            ...data,
+            uploadedAt: data.uploadedAt?.toDate?.()?.toISOString() || null,
+            examDate: data.examDate?.toDate?.()?.toISOString() || null
+        });
+    } catch (error) {
+        console.error('❌ Erro ao obter arquivo:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint para deletar um arquivo
+app.delete('/api/files/:id', async (req, res) => {
+    try {
+        const docRef = db.collection('files').doc(req.params.id);
+        const doc = await docRef.get();
+
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Arquivo não encontrado' });
+        }
+
+        const data = doc.data();
+
+        // Remove do Storage
+        if (data.storagePath) {
+            await deleteFile(data.storagePath);
+        }
+
+        // Remove do Firestore
+        await docRef.delete();
+
+        console.log(`🗑️ Arquivo deletado: ${data.originalFileName}`);
+        res.json({ success: true, message: 'Arquivo deletado com sucesso' });
+    } catch (error) {
+        console.error('❌ Erro ao deletar arquivo:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
