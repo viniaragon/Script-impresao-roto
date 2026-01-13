@@ -104,7 +104,7 @@ function listPrinters() {
 }
 
 /**
- * Baixa um arquivo PDF
+ * Baixa um arquivo
  */
 function downloadFile(url, destPath) {
     return new Promise((resolve, reject) => {
@@ -133,21 +133,29 @@ function downloadFile(url, destPath) {
 }
 
 /**
- * Imprime um arquivo PDF usando PDFtoPrinter ou SumatraPDF
+ * Imprime um arquivo usando o método apropriado baseado na extensão
+ * - PDF: usa PDFtoPrinter.exe (se disponível) ou PowerShell
+ * - Outros: usa PowerShell com shell verb nativo
  */
-function printPDF(filePath, printerName) {
+function printFile(filePath, printerName) {
     return new Promise((resolve, reject) => {
-        // Opção 1: Usando PDFtoPrinter (precisa estar na pasta tools junto ao .exe)
-        const pdfToPrinter = path.join(TOOLS_DIR, 'PDFtoPrinter.exe');
-
-        // Opção 2: Usando comando nativo do Windows (menos confiável)
+        const ext = path.extname(filePath).toLowerCase();
         let command;
 
-        if (fs.existsSync(pdfToPrinter)) {
-            command = `"${pdfToPrinter}" "${filePath}" "${printerName}"`;
+        if (ext === '.pdf') {
+            // PDF: usa PDFtoPrinter (precisa estar na pasta tools junto ao .exe)
+            const pdfToPrinter = path.join(TOOLS_DIR, 'PDFtoPrinter.exe');
+
+            if (fs.existsSync(pdfToPrinter)) {
+                command = `"${pdfToPrinter}" "${filePath}" "${printerName}"`;
+            } else {
+                // Fallback: usa o comando Start-Process do PowerShell
+                command = `powershell -Command "Start-Process -FilePath '${filePath}' -Verb PrintTo -ArgumentList '${printerName}' -Wait"`;
+            }
         } else {
-            // Fallback: usa o comando Start-Process do PowerShell
-            command = `powershell -Command "Start-Process -FilePath '${filePath}' -Verb PrintTo -ArgumentList '${printerName}' -Wait"`;
+            // Outros formatos (imagens, documentos): usa shell verb nativo do Windows
+            // Nota: Para DOC/DOCX/XLS/XLSX, é necessário ter o aplicativo associado instalado
+            command = `powershell -Command "Start-Process -FilePath '${filePath}' -Verb Print -Wait"`;
         }
 
         console.log(`🖨️ Executando: ${command}`);
@@ -227,8 +235,9 @@ async function main() {
                 message: 'Baixando arquivo...'
             });
 
-            // Baixa o arquivo
-            const tempFile = path.join(TEMP_DIR, `${job.jobId}.pdf`);
+            // Baixa o arquivo (mantém a extensão original)
+            const ext = path.extname(job.fileName) || '.pdf';
+            const tempFile = path.join(TEMP_DIR, `${job.jobId}${ext}`);
             await downloadFile(job.fileUrl, tempFile);
             console.log('   ✓ Download concluído');
 
@@ -241,7 +250,7 @@ async function main() {
 
             // Imprime
             const printerName = job.printerId.replace(/_/g, ' ');
-            await printPDF(tempFile, printerName);
+            await printFile(tempFile, printerName);
             console.log('   ✓ Enviado para impressora');
 
             // Limpa arquivo temporário

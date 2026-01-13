@@ -1,7 +1,30 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Upload, FileText, X } from 'lucide-react';
+import { Upload, FileText, X, Image, FileSpreadsheet, File } from 'lucide-react';
+
+// Tipos de arquivo permitidos para impressão
+const ALLOWED_MIME_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/bmp',
+    'text/plain',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+];
+
+const ACCEPTED_EXTENSIONS = '.pdf,.jpg,.jpeg,.png,.gif,.bmp,.txt,.doc,.docx,.xls,.xlsx';
+
+// Retorna o ícone apropriado baseado no tipo de arquivo
+function getFileIcon(mimeType: string) {
+    if (mimeType.startsWith('image/')) return Image;
+    if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return FileSpreadsheet;
+    return FileText;
+}
 
 interface FileUploadProps {
     onFileSelect: (file: File) => void;
@@ -27,20 +50,20 @@ export function FileUpload({ onFileSelect, selectedFile, onClear }: FileUploadPr
         setIsDragging(false);
 
         const file = e.dataTransfer.files[0];
-        if (file && file.type === 'application/pdf') {
+        if (file && ALLOWED_MIME_TYPES.includes(file.type)) {
             onFileSelect(file);
         } else {
-            alert('Por favor, selecione apenas arquivos PDF.');
+            alert('Formato não suportado. Aceitos: PDF, JPG, PNG, GIF, BMP, TXT, DOC, DOCX, XLS, XLSX');
         }
     }, [onFileSelect]);
 
     const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            if (file.type === 'application/pdf') {
+            if (ALLOWED_MIME_TYPES.includes(file.type)) {
                 onFileSelect(file);
             } else {
-                alert('Por favor, selecione apenas arquivos PDF.');
+                alert('Formato não suportado. Aceitos: PDF, JPG, PNG, GIF, BMP, TXT, DOC, DOCX, XLS, XLSX');
             }
         }
     }, [onFileSelect]);
@@ -49,8 +72,11 @@ export function FileUpload({ onFileSelect, selectedFile, onClear }: FileUploadPr
         return (
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-5">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-red-500/10 rounded-lg">
-                        <FileText className="w-6 h-6 text-red-400" />
+                    <div className="p-3 bg-emerald-500/10 rounded-lg">
+                        {(() => {
+                            const IconComponent = getFileIcon(selectedFile.type);
+                            return <IconComponent className="w-6 h-6 text-emerald-400" />;
+                        })()}
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="font-medium text-white truncate">{selectedFile.name}</p>
@@ -83,7 +109,7 @@ export function FileUpload({ onFileSelect, selectedFile, onClear }: FileUploadPr
         >
             <input
                 type="file"
-                accept=".pdf,application/pdf"
+                accept={ACCEPTED_EXTENSIONS}
                 onChange={handleFileInput}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
@@ -94,9 +120,9 @@ export function FileUpload({ onFileSelect, selectedFile, onClear }: FileUploadPr
                 </div>
                 <div>
                     <p className="font-medium text-white">
-                        {isDragging ? 'Solte o arquivo aqui' : 'Arraste um PDF ou clique para selecionar'}
+                        {isDragging ? 'Solte o arquivo aqui' : 'Arraste um arquivo ou clique para selecionar'}
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">Apenas arquivos PDF são aceitos</p>
+                    <p className="text-sm text-gray-500 mt-1">PDF, Imagens, Word, Excel e TXT</p>
                 </div>
             </div>
         </div>

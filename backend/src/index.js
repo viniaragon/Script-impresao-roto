@@ -65,6 +65,20 @@ app.get('/api/agents', (req, res) => {
     res.json(agents);
 });
 
+// Tipos de arquivo permitidos para impressão
+const ALLOWED_MIME_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/bmp',
+    'text/plain',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+];
+
 // Configuração do Multer para upload de arquivos em memória
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -72,10 +86,10 @@ const upload = multer({
         fileSize: 50 * 1024 * 1024, // Limite de 50MB
     },
     fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'application/pdf') {
+        if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Apenas arquivos PDF são permitidos'), false);
+            cb(new Error('Formato de arquivo não suportado. Formatos aceitos: PDF, JPG, PNG, GIF, BMP, TXT, DOC, DOCX, XLS, XLSX'), false);
         }
     }
 });
