@@ -7,6 +7,10 @@
  * - Receber e executar jobs de impressão
  */
 
+// Força uso de IPv4 para evitar problemas com IPv6
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+
 const { io } = require('socket.io-client');
 const { exec } = require('child_process');
 const fs = require('fs');

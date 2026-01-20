@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
+    <title>EchoLink Digitadora</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Barra de título customizada -->
+    <header class="titlebar">
+        <div class="titlebar-drag">
+            <span class="titlebar-icon">🖨️</span>
+            <span class="titlebar-text">EchoLink Digitadora</span>
+        </div>
+        <div class="titlebar-controls">
+            <button class="titlebar-btn minimize" id="btn-minimize">─</button>
+            <button class="titlebar-btn close" id="btn-close">✕</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Status de conexão -->
+        <div class="status-bar">
+            <span class="status-indicator" id="status-indicator"></span>
+            <span class="status-text" id="status-text">Desconectado</span>
+        </div>
+
+        <!-- Configuração -->
+        <section class="card">
+            <h2 class="card-title">📁 Configuração</h2>
+            
+            <div class="form-group">
+                <label for="folder-path">Pasta para monitorar:</label>
+                <div class="input-group">
+                    <input type="text" id="folder-path" readonly placeholder="Selecione uma pasta...">
+                    <button class="btn btn-secondary" id="btn-browse">Procurar</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="agent-select">Agente destino:</label>
+                <select id="agent-select" disabled>
+                    <option value="">Conecte ao servidor...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="printer-select">Impressora:</label>
+                <select id="printer-select" disabled>
+                    <option value="">Selecione um agente...</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Botão de ação -->
+        <button class="btn btn-primary btn-large" id="btn-start" disabled>
+            <span class="btn-icon">▶️</span>
+            <span class="btn-text">Iniciar Monitoramento</span>
+        </button>
+
+        <!-- Lista de arquivos -->
+        <section class="card">
+            <h2 class="card-title">📄 Arquivos Enviados</h2>
+            <div class="file-list" id="file-list">
+                <div class="file-list-empty">
+                    Nenhum arquivo enviado ainda
+                </div>
+            </div>
+        </section>
+
+        <!-- Estatísticas -->
+        <footer class="stats-bar">
+            <div class="stat">
+                <span class="stat-value" id="stat-sent">0</span>
+                <span class="stat-label">Enviados</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value stat-error" id="stat-errors">0</span>
+                <span class="stat-label">Erros</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value stat-pending" id="stat-pending">0</span>
+                <span class="stat-label">Pendentes</span>
+            </div>
+        </footer>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

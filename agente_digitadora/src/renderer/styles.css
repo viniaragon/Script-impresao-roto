@@ -1,0 +1,354 @@
+/* === Reset & Base === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-card: rgba(30, 41, 82, 0.8);
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --accent: #4ade80;
+    --accent-hover: #22c55e;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --border: rgba(255, 255, 255, 0.1);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* === Titlebar === */
+.titlebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.3);
+    -webkit-app-region: drag;
+    user-select: none;
+}
+
+.titlebar-drag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 12px;
+}
+
+.titlebar-icon {
+    font-size: 14px;
+}
+
+.titlebar-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.titlebar-controls {
+    display: flex;
+    -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+    width: 46px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.titlebar-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.titlebar-btn.close:hover {
+    background: var(--error);
+    color: white;
+}
+
+/* === Container === */
+.container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* === Status Bar === */
+.status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--error);
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.connected {
+    background: var(--accent);
+}
+
+.status-indicator.connecting {
+    background: var(--warning);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.status-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* === Cards === */
+.card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* === Form Elements === */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.input-group input {
+    flex: 1;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+}
+
+input::placeholder {
+    color: var(--text-secondary);
+}
+
+select {
+    cursor: pointer;
+}
+
+select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* === Buttons === */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #22c55e 100%);
+    color: #000;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(74, 222, 128, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-large {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+}
+
+.btn-stop {
+    background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%);
+    color: white;
+}
+
+/* === File List === */
+.file-list {
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.file-list-empty {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 20px;
+    font-size: 14px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.file-item-time {
+    color: var(--text-secondary);
+    font-size: 12px;
+    min-width: 50px;
+}
+
+.file-item-icon {
+    font-size: 14px;
+}
+
+.file-item-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-item.success .file-item-icon { color: var(--accent); }
+.file-item.error .file-item-icon { color: var(--error); }
+.file-item.pending .file-item-icon { color: var(--warning); }
+
+/* === Stats Bar === */
+.stats-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 16px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.stat-value.stat-error {
+    color: var(--error);
+}
+
+.stat-value.stat-pending {
+    color: var(--warning);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    display: block;
+}
+
+/* === Scrollbar === */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
