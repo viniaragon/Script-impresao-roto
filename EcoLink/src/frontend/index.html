@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoLink — Laudos de Ultrasonografia com IA</title>
+    <meta name="description"
+        content="Sistema de automação de laudos de ultrasonografia impulsionado por inteligência artificial.">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>">
+</head>
+
+<body>
+
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header__brand">
+                <span class="header__logo">🩺</span>
+                <div>
+                    <h1 class="header__title">EcoLink</h1>
+                    <p class="header__subtitle">Laudos de Ultrasonografia com IA</p>
+                </div>
+            </div>
+            <div class="header__actions">
+                <!-- Provider Indicator -->
+                <div class="provider-bar" id="provider-bar">
+                    <span class="provider-badge" id="provider-badge">
+                        🔗 OpenRouter
+                    </span>
+                    <button class="btn btn--accent" id="btn-chatgpt-login" title="Conectar token do Codex CLI">
+                        🤖 Conectar ChatGPT
+                    </button>
+                    <button class="btn btn--ghost btn--sm" id="btn-chatgpt-logout" style="display:none"
+                        title="Sair do ChatGPT">
+                        ↩️ Sair
+                    </button>
+                </div>
+                <button class="btn btn--ghost" id="btn-history" title="Histórico de laudos">
+                    📋 Histórico
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Grid: Input | Output -->
+        <div class="main-grid">
+
+            <!-- LEFT PANEL: Dictation Input -->
+            <div class="panel" id="panel-input">
+                <div class="panel__header">
+                    <span class="panel__title">🎤 Ditado Médico</span>
+                    <span class="status status--ready" id="input-status">● Pronto</span>
+                </div>
+                <div class="panel__body">
+                    <!-- Patient Name (optional) -->
+                    <div style="margin-bottom: var(--space-md);">
+                        <div class="patient-input-group">
+                            <input type="text" id="patientName" placeholder="Nome do paciente (opcional)"
+                                autocomplete="off">
+                            <button id="recordBtn" class="record-btn" title="Ditar laudo por voz">
+                                <span class="icon">🎤</span>
+                                <span class="text">Ditar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dictation Textarea -->
+                    <textarea class="dictation-area" id="dictation-input"
+                        placeholder="Digite ou cole o ditado do exame aqui...&#10;&#10;Exemplo: Ultrassonografia do abdômen. Fígado apresentando alterações compatíveis com cirrose incipiente. Rim direito medindo 7,0 cm..."
+                        spellcheck="true"></textarea>
+                </div>
+                <div class="panel__footer">
+                    <span class="shortcut-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> para gerar</span>
+                    <button class="btn btn--primary btn--lg" id="btn-generate">
+                        ✨ Gerar Laudo
+                    </button>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Report Output -->
+            <div class="panel" id="panel-output">
+                <div class="panel__header">
+                    <span class="panel__title">📄 Laudo Gerado</span>
+                    <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                        <span class="token-info" id="token-info"></span>
+                    </div>
+                </div>
+                <div class="panel__body">
+                    <div class="report-output empty" id="report-output" contenteditable="false">O laudo gerado aparecerá
+                        aqui...</div>
+
+                    <!-- Refine Area -->
+                    <div class="refine-area" id="refine-area">
+                        <input type="text" class="refine-input" id="refine-input"
+                            placeholder="Instruções de ajuste... (ex: 'trocar medida do rim direito para 8,0')">
+                        <button class="btn btn--secondary" id="btn-refine">🔄 Ajustar</button>
+                    </div>
+                </div>
+                <div class="panel__footer">
+                    <div style="display:flex; gap: var(--space-sm);">
+                        <button class="btn btn--ghost" id="btn-copy" disabled title="Copiar laudo">📋 Copiar</button>
+                        <button class="btn btn--ghost" id="btn-edit-toggle" disabled title="Editar laudo">✏️
+                            Editar</button>
+                    </div>
+                    <button class="btn btn--ghost" id="btn-new" title="Novo laudo">🗑️ Limpar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Panel -->
+    <div class="overlay" id="overlay"></div>
+    <div class="history-panel" id="history-panel">
+        <div class="history-panel__header">
+            <span class="panel__title">📋 Histórico de Laudos</span>
+            <button class="btn btn--ghost" id="btn-close-history">✕</button>
+        </div>
+        <div class="history-panel__body" id="history-list">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

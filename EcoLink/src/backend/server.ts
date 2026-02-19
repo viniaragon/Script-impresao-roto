@@ -1,0 +1,84 @@
+// ============================================================
+// EcoLink - Main Server
+// Hono server with static file serving for the frontend
+// ============================================================
+
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { serveStatic } from "hono/bun";
+import path from "path";
+import { initDatabase } from "./services/db-service.js";
+import { initAIService } from "./services/ai-service.js";
+import { api } from "./routes/api.js";
+import { auth } from "./routes/auth.js";
+
+// Load environment variables
+const envPath = path.join(import.meta.dir, "../../.env");
+const envFile = Bun.file(envPath);
+if (await envFile.exists()) {
+    const envContent = await envFile.text();
+    for (const line of envContent.split("\n")) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith("#")) {
+            const [key, ...valueParts] = trimmed.split("=");
+            if (key && valueParts.length > 0) {
+                process.env[key.trim()] = valueParts.join("=").trim();
+            }
+        }
+    }
+}
+
+const PORT = Number(process.env.PORT || 3210);
+
+// Initialize services
+initDatabase();
+
+const openRouterKey = process.env.OPENROUTER_API_KEY;
+if (!openRouterKey) {
+    console.warn("⚠️  OPENROUTER_API_KEY não configurada! Configure no .env.");
+    console.warn("   O servidor vai iniciar, mas a geração de laudos não funcionará.");
+} else {
+    initAIService(openRouterKey, process.env.AI_MODEL);
+}
+
+// Create Hono app
+const app = new Hono();
+
+// CORS
+app.use("*", cors());
+
+// API routes under /api
+app.route("/api", api);
+
+// Auth routes under /auth
+app.route("/auth", auth);
+
+// Serve frontend static files
+const frontendDir = path.join(import.meta.dir, "../frontend");
+app.use("/*", serveStatic({ root: frontendDir }));
+
+// Fallback to index.html for SPA routing
+app.get("*", async (c) => {
+    const indexPath = path.join(frontendDir, "index.html");
+    const file = Bun.file(indexPath);
+    if (await file.exists()) {
+        return c.html(await file.text());
+    }
+    return c.text("EcoLink - Frontend not found", 404);
+});
+
+console.log(`
+╔══════════════════════════════════════════════╗
+║                                              ║
+║   🩺  EcoLink - Laudos de Ultrasonografia    ║
+║                                              ║
+║   Servidor rodando em:                       ║
+║   http://localhost:${PORT}                     ║
+║                                              ║
+╚══════════════════════════════════════════════╝
+`);
+
+export default {
+    port: PORT,
+    fetch: app.fetch,
+};

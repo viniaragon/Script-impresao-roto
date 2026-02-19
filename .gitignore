@@ -15,6 +15,7 @@ build/
 
 # Firebase credentials (NEVER commit)
 **/serviceAccountKey.json
+**/service-account.json
 KeysAndImportants.md
 
 # Logs

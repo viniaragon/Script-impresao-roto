@@ -1,0 +1,26 @@
+{
+    "name": "ecolink",
+    "version": "0.1.0",
+    "description": "EcoLink - Automação de Laudos de Ultrasonografia com IA",
+    "scripts": {
+        "dev": "bun run --watch src/backend/server.ts",
+        "start": "bun run src/backend/server.ts"
+    },
+    "keywords": [
+        "ultrasonografia",
+        "laudos",
+        "ia",
+        "gemini"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@google/generative-ai": "^0.24.1",
+        "form-data": "^4.0.5",
+        "hono": "^4.12.0",
+        "uuid": "^13.0.0"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.3.9"
+    }
+}
