@@ -32,7 +32,7 @@ const BASE_DIR = isPkg
 const CONFIG_PATH = path.join(BASE_DIR, 'echolink-config.json');
 const TEMP_DIR = path.join(os.tmpdir(), 'echolink-temp');
 const TOOLS_DIR = path.join(BASE_DIR, 'tools');
-const SERVER_URL = process.env.SERVER_URL || 'https://echolink-backend-production.up.railway.app';
+const SERVER_URL = process.env.SERVER_URL || 'https://script-impresao-roto.zeabur.app';
 
 // Garante que a pasta temp existe (no sistema, não no snapshot)
 if (!fs.existsSync(TEMP_DIR)) {

@@ -124,7 +124,7 @@ ipcMain.handle('server:connect', async () => {
 // Buscar agentes
 ipcMain.handle('server:getAgents', async () => {
     const fetch = require('node-fetch');
-    const SERVER_URL = process.env.SERVER_URL || 'https://echolink-backend-production.up.railway.app';
+    const SERVER_URL = process.env.SERVER_URL || 'https://script-impresao-roto.zeabur.app';
     try {
         const response = await fetch(`${SERVER_URL}/api/agents`);
         return await response.json();

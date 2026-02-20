@@ -31,6 +31,7 @@ const els = {
     btnGenerate: $("#btn-generate"),
     btnCopy: $("#btn-copy"),
     btnEditToggle: $("#btn-edit-toggle"),
+    btnDownloadWord: $("#btn-download-word"),
     btnNew: $("#btn-new"),
     btnHistory: $("#btn-history"),
     btnCloseHistory: $("#btn-close-history"),
@@ -115,6 +116,8 @@ async function generateReport() {
         // Enable action buttons
         els.btnCopy.disabled = false;
         els.btnEditToggle.disabled = false;
+        els.btnDownloadWord.disabled = false;
+        els.btnDownloadWord.style.display = "inline-flex";
         els.refineArea.classList.add("visible");
 
         setStatus("ready", "Laudo gerado!");
@@ -225,6 +228,8 @@ function newReport() {
     els.reportOutput.classList.remove("editable");
     els.btnCopy.disabled = true;
     els.btnEditToggle.disabled = true;
+    els.btnDownloadWord.disabled = true;
+    els.btnDownloadWord.style.display = "none";
     els.btnEditToggle.textContent = "✏️ Editar";
     els.tokenInfo.textContent = "";
     els.refineArea.classList.remove("visible");
@@ -287,6 +292,8 @@ async function loadReportFromHistory(id) {
         els.reportOutput.classList.remove("empty");
         els.btnCopy.disabled = false;
         els.btnEditToggle.disabled = false;
+        els.btnDownloadWord.disabled = false;
+        els.btnDownloadWord.style.display = "inline-flex";
         els.refineArea.classList.add("visible");
 
         // Select the exam type chip
@@ -384,13 +391,13 @@ async function startRecording() {
 }
 
 function stopRecording() {
+    isRecording = false;
+    els.recordBtn.classList.remove('recording');
+    els.recordBtn.innerHTML = '<span class="icon">🎤</span><span class="text">Ditar</span>';
+    setStatus("ready", "Pronto");
+
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
-        isRecording = false;
-
-        // Atualiza UI
-        els.recordBtn.classList.remove('recording');
-        els.recordBtn.querySelector('.text').textContent = "Processando...";
     }
 }
 
@@ -428,6 +435,13 @@ async function uploadAndTranscribe(blob) {
     }
 }
 
+// ---- Download Word ----
+function downloadWord() {
+    if (!state.currentReportId) return;
+    toast("Gerando documento Word... 📄", "success");
+    window.location.href = `/api/reports/${state.currentReportId}/download-docx`;
+}
+
 // ---- Event Binding ----
 function bindEvents() {
     // Generate
@@ -462,6 +476,9 @@ function bindEvents() {
 
     // Edit toggle
     els.btnEditToggle.addEventListener("click", toggleEdit);
+
+    // Download Word
+    els.btnDownloadWord.addEventListener("click", downloadWord);
 
     // New report
     els.btnNew.addEventListener("click", newReport);

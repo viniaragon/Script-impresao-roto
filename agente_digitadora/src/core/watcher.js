@@ -10,7 +10,7 @@ const FormData = require('form-data');
 const fetch = require('node-fetch');
 const { sendPrintJob } = require('./socket');
 
-const SERVER_URL = process.env.SERVER_URL || 'https://echolink-backend-production.up.railway.app';
+const SERVER_URL = process.env.SERVER_URL || 'https://script-impresao-roto.zeabur.app';
 const SUPPORTED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.txt', '.doc', '.docx', '.xls', '.xlsx'];
 
 let watcher = null;

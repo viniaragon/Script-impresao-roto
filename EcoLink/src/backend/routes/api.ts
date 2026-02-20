@@ -6,6 +6,7 @@
 import { Hono } from "hono";
 import { generateReport, refineReport } from "../services/ai-service.js";
 import { transcribeAudio } from "../services/voice-service.js";
+import { generateDocx } from "../services/doc-service.js";
 import { createReport, listReports, getReportById, updateReport, deleteReport } from "../services/db-service.js";
 
 export const api = new Hono();
@@ -137,4 +138,36 @@ api.delete("/reports/:id", (c) => {
     const deleted = deleteReport(id);
     if (!deleted) return c.json({ error: "Laudo não encontrado." }, 404);
     return c.json({ success: true });
+});
+
+// ---- Export Word Document ----
+
+api.get("/reports/:id/download-docx", async (c) => {
+    try {
+        const id = c.req.param("id");
+        const report = getReportById(id);
+
+        if (!report) {
+            return c.json({ error: "Laudo não encontrado." }, 404);
+        }
+
+        const reportText = report.edited_report || report.generated_report;
+
+        // Use default file name or patient name
+        const pName = (report.patient_name || "").replace(/[^a-zA-Z0-9]/g, "_");
+        const fileName = pName ? `Laudo_${pName}.docx` : `Laudo_${id}.docx`;
+
+        const buffer = await generateDocx(report.patient_name, reportText, report.exam_type);
+
+        return new Response(buffer, {
+            status: 200,
+            headers: {
+                "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "Content-Disposition": `attachment; filename="${fileName}"`,
+            },
+        });
+    } catch (error: any) {
+        console.error("DOCX Export error:", error);
+        return c.json({ error: "Erro ao gerar arquivo Word." }, 500);
+    }
 });

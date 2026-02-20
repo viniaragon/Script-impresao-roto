@@ -46,7 +46,7 @@ export default function Home() {
       formData.append('file', selectedFile);
 
       const uploadResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL || 'https://echolink-backend-production.up.railway.app'}/api/upload`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL || 'https://script-impresao-roto.zeabur.app'}/api/upload`,
         {
           method: 'POST',
           body: formData,

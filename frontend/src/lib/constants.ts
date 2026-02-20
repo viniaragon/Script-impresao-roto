@@ -1,7 +1,7 @@
 // Constantes do projeto EchoLink
 
 // URL do servidor WebSocket (Railway em produção)
-export const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://echolink-backend-production.up.railway.app';
+export const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'https://script-impresao-roto.zeabur.app';
 
 // Status de jobs possíveis
 export const JOB_STATUS = {

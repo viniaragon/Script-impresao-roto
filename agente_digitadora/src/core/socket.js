@@ -7,7 +7,7 @@ dns.setDefaultResultOrder('ipv4first');
 
 const { io } = require('socket.io-client');
 
-const SERVER_URL = process.env.SERVER_URL || 'https://echolink-backend-production.up.railway.app';
+const SERVER_URL = process.env.SERVER_URL || 'https://script-impresao-roto.zeabur.app';
 
 let socket = null;
 let eventCallback = null;

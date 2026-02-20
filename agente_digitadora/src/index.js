@@ -31,7 +31,7 @@ const {
 } = require('./history');
 
 // Configurações do servidor
-const SERVER_URL = process.env.SERVER_URL || 'https://echolink-backend-production.up.railway.app';
+const SERVER_URL = process.env.SERVER_URL || 'https://script-impresao-roto.zeabur.app';
 
 // Tipos de arquivo suportados para impressão
 const SUPPORTED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.txt', '.doc', '.docx', '.xls', '.xlsx'];

@@ -43,7 +43,7 @@ Sistema completo para impressão remota via web. Permite enviar documentos PDF d
 | Componente | URL |
 |------------|-----|
 | Dashboard | https://script-impresao-frontend-20.vercel.app |
-| Backend API | https://echolink-backend-production.up.railway.app |
+| Backend API | https://script-impresao-roto.zeabur.app |
 
 ## 📁 Estrutura do Projeto
 

@@ -23,11 +23,14 @@ Exemplos de normalidade (adapte conforme o órgão/exame):
 - Vesícula: "de paredes finas, de conteúdo anecóico, sem cálculos."
 - Útero/Ovários: "com dimensões e contornos conservados, miométrio/parênquima homogêneo."
 
+RECOMENDAÇÃO DE VOCABULÁRIO ESTREITA:
+- Para "Vias biliares intra-hepáticas e extra-hepáticas", se estiverem normais, utilize EXATAMENTE a expressão "sem alterações" (nunca use "Sem dilatação" ou frases longas).
+
 4. ACHADOS DO DITADO:
 Incorpore os achados, patologias ou medidas DITADAS estritamente nos órgãos correspondentes, substituindo a descrição de normalidade pela alteração encontrada. Mantenha os dados numéricos e medidas cirurgicamente exatos. Expanda abreviações para linguagem médica.
 
 5. ESTRUTURA E FORMATAÇÃO DO LAUDO:
-Siga estritamente este formato com estas quebras de linha:
+Siga estritamente este formato, sem introduzir linhas em branco extras entre os órgãos, com espaçamento simples. O nome do órgão DEVE estar na mesma linha da sua descrição.
 
 LAUDO DE [NOME DO EXAME INFERIDO EM CAIXA ALTA]
 
@@ -36,8 +39,10 @@ Idade: [Se fornecida]
 Indicação clínica: [A indicação clínica ou sintomas mencionados no ditado. Se não houver, coloque 'Não informada']
 
 Descrição do exame:
-
-[Parágrafos para cada órgão pertencente a este tipo de exame, com Título do Órgão em Negrito, pulando uma linha entre eles]
+**Fígado:** [Descrição do fígado na mesma linha...]
+**Vesícula Biliar:** [Descrição...]
+**Vias biliares intra-hepáticas e extra-hepáticas:** sem alterações.
+[Continue para TODOS os demais órgãos pertencentes a este tipo de exame, formato obrigatório: **Nome do Órgão:** Descrição na mesma linha, sem pular linhas de espaço entre os órgãos]
 
 Conclusão:
 
