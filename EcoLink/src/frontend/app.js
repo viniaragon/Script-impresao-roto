@@ -3,7 +3,7 @@
 // Handles UI interactions, API calls, and state management
 // ============================================================
 
-const API_BASE = "/api";
+const API_BASE = (window.ECOLINK_CONFIG?.API_URL || "") + "/api";
 
 // ---- State ----
 let state = {
@@ -486,7 +486,7 @@ async function uploadAndTranscribe(blob, existingBackupId) {
         const formData = new FormData();
         formData.append('audio', blob, 'dictation.webm');
 
-        const res = await fetch('/api/transcribe', {
+        const res = await fetch(`${API_BASE}/transcribe`, {
             method: 'POST',
             body: formData
         });
@@ -573,7 +573,7 @@ async function retryAudio() {
 function downloadWord() {
     if (!state.currentReportId) return;
     toast("Gerando documento Word... 📄", "success");
-    window.location.href = `/api/reports/${state.currentReportId}/download-docx`;
+    window.location.href = `${API_BASE}/reports/${state.currentReportId}/download-docx`;
 }
 
 // ---- Event Binding ----
