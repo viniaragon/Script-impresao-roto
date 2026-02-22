@@ -648,7 +648,8 @@ function bindEvents() {
 // ---- Auth Functions ----
 async function checkAuthStatus() {
     try {
-        const res = await fetch("/auth/status");
+        const baseUrl = window.ECOLINK_CONFIG?.API_URL || "";
+        const res = await fetch(`${baseUrl}/auth/status`);
         const data = await res.json();
 
         state.authProvider = data.provider;
