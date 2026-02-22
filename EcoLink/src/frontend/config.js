@@ -7,5 +7,5 @@
 
 const ECOLINK_CONFIG = {
     // Backend URL (empty = same origin, for local dev)
-    API_URL: "",
+    API_URL: "https://ecolink-alpha.zeabur.app",
 };
