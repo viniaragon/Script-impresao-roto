@@ -20,6 +20,13 @@ let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
 
+// Voice Command State
+let voiceModeActive = false;
+let speechRecognition = null;
+let voiceMediaRecorder = null;
+let voiceAudioChunks = [];
+let voiceRecordingStream = null;
+
 // ---- DOM Elements ----
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -51,7 +58,25 @@ const els = {
     // New elements for dictation
     recordBtn: $("#recordBtn"),
     charCount: $("#char-count"),
+    // Voice command elements
+    btnVoiceMode: $("#btn-voice-mode"),
+    voiceStatus: $("#voice-status"),
+    // Settings elements
+    btnSettings: $("#btn-settings"),
+    settingsModal: $("#settings-modal"),
+    settingsOverlay: $("#settings-overlay"),
+    btnCloseSettings: $("#btn-close-settings"),
+    btnSaveSettings: $("#btn-save-settings"),
+    settingsDocxPath: $("#settings-docx-path"),
+    settingsPdfPath: $("#settings-pdf-path"),
+    // History management
+    btnClearHistory: $("#btn-clear-history"),
+    // Audio retry
+    retryAudioBtn: $("#retryAudioBtn"),
 };
+
+// Track the current pending backup ID for retry
+let pendingRetryBackupId = null;
 
 // ---- Initialize ----
 async function init() {
@@ -60,6 +85,7 @@ async function init() {
     bindEvents();
     setupAudioRecording(); // Setup audio recording
     updateCharCount(); // Initial char count
+    checkPendingBackups(); // Check for unsent audio backups
 }
 
 // ---- API Calls ----
@@ -121,7 +147,12 @@ async function generateReport() {
         els.refineArea.classList.add("visible");
 
         setStatus("ready", "Laudo gerado!");
-        toast("Laudo gerado com sucesso! ✨", "success");
+
+        // Show export info
+        let exportMsg = "Laudo gerado com sucesso! ✨";
+        if (data.exports?.docxPath) exportMsg += " 📄 Word salvo.";
+        if (data.exports?.pdfPath) exportMsg += " 📑 PDF salvo.";
+        toast(exportMsg, "success");
     } catch (err) {
         console.error("Generate error:", err);
         els.reportOutput.textContent = `Erro: ${err.message}`;
@@ -266,17 +297,33 @@ function renderHistory(reports) {
             });
             return `
         <div class="history-item" data-id="${r.id}">
-          <div class="history-item__type">${r.exam_type}</div>
-          <div class="history-item__patient">${r.patient_name || "Paciente não informado"}</div>
-          <div class="history-item__date">${date}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1; cursor:pointer;" class="history-item__click">
+              <div class="history-item__type">${r.exam_type}</div>
+              <div class="history-item__patient">${r.patient_name || "Paciente não informado"}</div>
+              <div class="history-item__date">${date}</div>
+            </div>
+            <button class="btn btn--ghost history-item__delete" data-id="${r.id}" title="Excluir este laudo" style="color: var(--error-color); font-size: 1rem; padding: 4px 8px;">✕</button>
+          </div>
         </div>
       `;
         })
         .join("");
 
-    // Bind clicks
-    els.historyList.querySelectorAll(".history-item").forEach((item) => {
-        item.addEventListener("click", () => loadReportFromHistory(item.dataset.id));
+    // Bind clicks to load report
+    els.historyList.querySelectorAll(".history-item__click").forEach((item) => {
+        item.addEventListener("click", () => {
+            const id = item.closest(".history-item").dataset.id;
+            loadReportFromHistory(id);
+        });
+    });
+
+    // Bind delete buttons
+    els.historyList.querySelectorAll(".history-item__delete").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteHistoryItem(btn.dataset.id);
+        });
     });
 }
 
@@ -296,11 +343,8 @@ async function loadReportFromHistory(id) {
         els.btnDownloadWord.style.display = "inline-flex";
         els.refineArea.classList.add("visible");
 
-        // Select the exam type chip
+        // Update exam type state (if available)
         state.examType = r.exam_type;
-        els.examSelector.querySelectorAll(".exam-chip").forEach((c) => {
-            c.classList.toggle("active", c.dataset.type === r.exam_type);
-        });
 
         toggleHistoryPanel(false);
         toast("Laudo carregado do histórico", "success");
@@ -315,6 +359,33 @@ function toggleHistoryPanel(open) {
     els.historyPanel.classList.toggle("open", state.historyOpen);
     els.overlay.classList.toggle("visible", state.historyOpen);
     if (state.historyOpen) loadHistory();
+}
+
+async function deleteHistoryItem(id) {
+    if (!confirm("Tem certeza que deseja excluir este laudo?")) return;
+    try {
+        await apiCall(`/reports/${id}`, { method: "DELETE" });
+        toast("🗑️ Laudo excluído.", "success");
+        // If the deleted report was currently loaded, clear the view
+        if (state.currentReportId === id) {
+            newReport();
+        }
+        loadHistory(); // Refresh list
+    } catch (err) {
+        toast("Erro ao excluir: " + err.message, "error");
+    }
+}
+
+async function clearAllHistory() {
+    if (!confirm("Tem certeza que deseja EXCLUIR TODO o histórico? Esta ação não pode ser desfeita.")) return;
+    try {
+        const data = await apiCall("/reports", { method: "DELETE" });
+        toast(`🗑️ ${data.deletedCount} laudos excluídos.`, "success");
+        newReport();
+        loadHistory(); // Refresh (will show empty)
+    } catch (err) {
+        toast("Erro ao limpar histórico: " + err.message, "error");
+    }
 }
 
 // ---- UI Helpers ----
@@ -401,8 +472,17 @@ function stopRecording() {
     }
 }
 
-async function uploadAndTranscribe(blob) {
+async function uploadAndTranscribe(blob, existingBackupId) {
+    let backupId = existingBackupId || null;
+
     try {
+        const patientName = els.patientName.value.trim();
+
+        // Save audio backup BEFORE sending (instant, local)
+        if (!backupId) {
+            backupId = await saveAudioBackup(blob, patientName);
+        }
+
         const formData = new FormData();
         formData.append('audio', blob, 'dictation.webm');
 
@@ -417,6 +497,10 @@ async function uploadAndTranscribe(blob) {
         els.recordBtn.querySelector('.text').textContent = "Ditar";
 
         if (data.success && data.text) {
+            // SUCCESS — remove backup
+            await removeAudioBackup(backupId);
+            hideRetryButton();
+
             // Adiciona o texto transcrito ao campo (com espaço se já houver texto)
             const currentVal = els.dictationInput.value.trim();
             els.dictationInput.value = currentVal ? `${currentVal} ${data.text}` : data.text;
@@ -430,8 +514,58 @@ async function uploadAndTranscribe(blob) {
         }
     } catch (err) {
         console.error("Transcription upload error:", err);
-        toast("Erro ao transcrever: " + err.message, "error");
+
+        // FAILURE — mark backup as failed (audio is safe!)
+        await markBackupFailed(backupId);
+
+        toast("⚠️ Erro na transcrição. Áudio salvo! Clique 🔄 Reenviar.", "error");
         els.recordBtn.querySelector('.text').textContent = "Ditar";
+
+        // Show retry button NEAR Ditar
+        showRetryButton(backupId);
+    }
+}
+
+/**
+ * Show/hide the dedicated retry button near Ditar.
+ */
+function showRetryButton(backupId) {
+    pendingRetryBackupId = backupId;
+    els.retryAudioBtn.style.display = "inline-flex";
+}
+
+function hideRetryButton() {
+    pendingRetryBackupId = null;
+    els.retryAudioBtn.style.display = "none";
+}
+
+/**
+ * Retry: re-send audio from backup (transcription only, no auto-generation).
+ */
+async function retryAudio() {
+    if (!pendingRetryBackupId) return;
+
+    const backup = await getBackupById(pendingRetryBackupId);
+    if (!backup || !backup.blob) {
+        toast("❌ Backup não encontrado.", "error");
+        hideRetryButton();
+        return;
+    }
+
+    // Restore patient name if saved
+    if (backup.patientName && !els.patientName.value.trim()) {
+        els.patientName.value = backup.patientName;
+    }
+
+    els.retryAudioBtn.querySelector('.text').textContent = "Reenviando...";
+    toast("🔄 Reenviando áudio salvo...", "success");
+
+    // Use uploadAndTranscribe (transcription only, NOT report generation)
+    await uploadAndTranscribe(backup.blob, pendingRetryBackupId);
+
+    // If successful, hide the button
+    if (!pendingRetryBackupId) {
+        els.retryAudioBtn.querySelector('.text').textContent = "Reenviar";
     }
 }
 
@@ -487,6 +621,8 @@ function bindEvents() {
     els.btnHistory.addEventListener("click", () => toggleHistoryPanel(true));
     els.btnCloseHistory.addEventListener("click", () => toggleHistoryPanel(false));
     els.overlay.addEventListener("click", () => toggleHistoryPanel(false));
+    els.btnClearHistory.addEventListener("click", clearAllHistory);
+    els.retryAudioBtn.addEventListener("click", retryAudio);
 
     // ESC to close history
     document.addEventListener("keydown", (e) => {
@@ -498,6 +634,15 @@ function bindEvents() {
     // Auth
     els.btnChatgptLogin.addEventListener("click", connectChatGPT);
     els.btnChatgptLogout.addEventListener("click", logoutChatGPT);
+
+    // Voice Mode
+    els.btnVoiceMode.addEventListener("click", toggleVoiceMode);
+
+    // Settings
+    els.btnSettings.addEventListener("click", openSettings);
+    els.btnCloseSettings.addEventListener("click", closeSettings);
+    els.settingsOverlay.addEventListener("click", closeSettings);
+    els.btnSaveSettings.addEventListener("click", saveSettingsFromUI);
 }
 
 // ---- Auth Functions ----
@@ -572,6 +717,283 @@ async function logoutChatGPT() {
         toast("Desconectado do ChatGPT", "success");
     } catch (err) {
         toast("Erro ao desconectar: " + err.message, "error");
+    }
+}
+
+// ---- Settings Modal ----
+
+async function openSettings() {
+    // Load current settings from backend
+    try {
+        const data = await apiCall("/settings");
+        els.settingsDocxPath.value = data.settings.exportDocxPath || "";
+        els.settingsPdfPath.value = data.settings.exportPdfPath || "";
+    } catch (err) {
+        console.error("Failed to load settings:", err);
+    }
+    els.settingsModal.style.display = "block";
+    els.settingsOverlay.style.display = "block";
+}
+
+function closeSettings() {
+    els.settingsModal.style.display = "none";
+    els.settingsOverlay.style.display = "none";
+}
+
+async function saveSettingsFromUI() {
+    try {
+        const settings = {
+            exportDocxPath: els.settingsDocxPath.value.trim(),
+            exportPdfPath: els.settingsPdfPath.value.trim(),
+        };
+        await apiCall("/settings", {
+            method: "POST",
+            body: JSON.stringify(settings),
+        });
+        toast("⚙️ Configurações salvas com sucesso!", "success");
+        closeSettings();
+    } catch (err) {
+        toast("Erro ao salvar configurações: " + err.message, "error");
+    }
+}
+
+// ============================================================
+// Voice Command Listener (Web Speech API)
+// "eco começar" → start recording, "eco gerar" → stop + process
+// ============================================================
+
+function toggleVoiceMode() {
+    if (voiceModeActive) {
+        stopVoiceListening();
+    } else {
+        startVoiceListening();
+    }
+}
+
+function setVoiceStatus(status, color) {
+    els.voiceStatus.style.display = "inline";
+    els.voiceStatus.textContent = `● ${status}`;
+    els.voiceStatus.style.color = color || "var(--text-muted)";
+}
+
+function startVoiceListening() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        toast("Seu navegador não suporta reconhecimento de voz. Use Chrome ou Edge.", "error");
+        return;
+    }
+
+    speechRecognition = new SpeechRecognition();
+    speechRecognition.continuous = true;
+    speechRecognition.interimResults = true;
+    speechRecognition.lang = "pt-BR";
+
+    speechRecognition.onstart = () => {
+        voiceModeActive = true;
+        els.btnVoiceMode.textContent = "🔴 Parar Voz";
+        els.btnVoiceMode.classList.add("active");
+        setVoiceStatus("Escutando comandos...", "#4CAF50");
+        toast("🎧 Modo Voz ativado! Diga \"eco começar\" para gravar.", "success");
+    };
+
+    speechRecognition.onresult = (event) => {
+        // Check only the latest result for wake words
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript.toLowerCase().trim();
+
+            // Detect "eco começar" (start recording)
+            if (transcript.includes("eco começar") || transcript.includes("eco comecar") || transcript.includes("eco iniciar")) {
+                if (!isRecording) {
+                    startVoiceRecording();
+                }
+                return;
+            }
+
+            // Detect "eco gerar" (stop recording + process)
+            if (transcript.includes("eco gerar") || transcript.includes("eco gera") || transcript.includes("eco parar")) {
+                if (isRecording) {
+                    stopVoiceRecordingAndProcess();
+                }
+                return;
+            }
+        }
+    };
+
+    speechRecognition.onerror = (event) => {
+        if (event.error === "no-speech") return; // Ignore silence
+        if (event.error === "aborted") return;   // Ignore manual abort
+        console.error("SpeechRecognition error:", event.error);
+        setVoiceStatus(`Erro: ${event.error}`, "#f44336");
+    };
+
+    speechRecognition.onend = () => {
+        // Auto-restart if voice mode is still active (continuous listening)
+        if (voiceModeActive) {
+            try {
+                speechRecognition.start();
+            } catch (e) {
+                // Ignore if already started
+            }
+        }
+    };
+
+    try {
+        speechRecognition.start();
+    } catch (e) {
+        toast("Erro ao iniciar reconhecimento de voz: " + e.message, "error");
+    }
+}
+
+function stopVoiceListening() {
+    voiceModeActive = false;
+    if (speechRecognition) {
+        speechRecognition.abort();
+        speechRecognition = null;
+    }
+    // If currently recording, stop that too
+    if (isRecording && voiceMediaRecorder) {
+        voiceMediaRecorder.stop();
+        isRecording = false;
+    }
+    if (voiceRecordingStream) {
+        voiceRecordingStream.getTracks().forEach(t => t.stop());
+        voiceRecordingStream = null;
+    }
+    els.btnVoiceMode.textContent = "🎧 Modo Voz";
+    els.btnVoiceMode.classList.remove("active");
+    els.voiceStatus.style.display = "none";
+    toast("🎧 Modo Voz desativado.", "success");
+}
+
+async function startVoiceRecording() {
+    try {
+        voiceRecordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        voiceMediaRecorder = new MediaRecorder(voiceRecordingStream, { mimeType: "audio/webm" });
+        voiceAudioChunks = [];
+
+        voiceMediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) voiceAudioChunks.push(e.data);
+        };
+
+        voiceMediaRecorder.start();
+        isRecording = true;
+
+        setVoiceStatus("🔴 Gravando ditado... Diga \"eco gerar\" para finalizar.", "#f44336");
+        toast("🎤 Gravação iniciada! Dite o exame agora.", "success");
+    } catch (err) {
+        console.error("Erro ao iniciar gravação:", err);
+        toast("Erro ao acessar microfone: " + err.message, "error");
+    }
+}
+
+function stopVoiceRecordingAndProcess() {
+    if (!voiceMediaRecorder || voiceMediaRecorder.state === "inactive") return;
+
+    setVoiceStatus("⏳ Processando... (transcrevendo → gerando laudo → exportando)", "#FF9800");
+    toast("⏳ Processando o ditado...", "success");
+
+    voiceMediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(voiceAudioChunks, { type: "audio/webm" });
+
+        // Release microphone
+        if (voiceRecordingStream) {
+            voiceRecordingStream.getTracks().forEach(t => t.stop());
+            voiceRecordingStream = null;
+        }
+        isRecording = false;
+
+        // Send to voice-flow endpoint
+        await processVoiceFlow(audioBlob);
+    };
+
+    voiceMediaRecorder.stop();
+}
+
+async function processVoiceFlow(audioBlob, existingBackupId) {
+    let backupId = existingBackupId || null;
+
+    try {
+        state.isGenerating = true;
+        els.reportOutput.classList.remove("empty");
+        els.reportOutput.textContent = "⏳ Transcrevendo áudio e gerando laudo...";
+
+        const patientName = els.patientName.value.trim();
+
+        // Save audio backup BEFORE sending (instant, local)
+        if (!backupId) {
+            backupId = await saveAudioBackup(audioBlob, patientName);
+        }
+
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "voice-flow.webm");
+        if (patientName) {
+            formData.append("patientName", patientName);
+        }
+
+        const res = await fetch(`${API_BASE}/voice-flow`, {
+            method: "POST",
+            body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Erro no fluxo de voz");
+
+        // SUCCESS — remove backup
+        await removeAudioBackup(backupId);
+
+        // Update UI with results
+        state.currentReportId = data.report.id;
+        els.dictationInput.value = data.transcription;
+        els.reportOutput.textContent = data.report.generated_report;
+        els.reportOutput.classList.remove("empty");
+
+        // Enable action buttons
+        els.btnCopy.disabled = false;
+        els.btnEditToggle.disabled = false;
+        els.btnDownloadWord.disabled = false;
+        els.btnDownloadWord.style.display = "inline-flex";
+        els.refineArea.classList.add("visible");
+
+        // Show AI info
+        if (data.ai?.tokensUsed) {
+            els.tokenInfo.textContent = `${data.ai.tokensUsed} tokens · ${data.ai.model}`;
+        }
+
+        // Show export info
+        let exportMsg = "✅ Laudo gerado!";
+        if (data.exports?.docxPath) exportMsg += ` 📄 Word salvo.`;
+        if (data.exports?.pdfPath) exportMsg += ` 📑 PDF salvo.`;
+        toast(exportMsg, "success");
+        setVoiceStatus("✅ Pronto! Diga \"eco começar\" para novo laudo.", "#4CAF50");
+
+        updateCharCount();
+    } catch (err) {
+        console.error("Voice-flow error:", err);
+
+        // FAILURE — mark backup as failed (audio is safe!)
+        await markBackupFailed(backupId);
+
+        els.reportOutput.textContent = `Erro: ${err.message}`;
+        toast("⚠️ Erro no envio. Áudio salvo localmente! Use 🔄 Reenviar.", "error");
+        setVoiceStatus("⚠️ Falha! Áudio protegido. Clique 🔄 para reenviar.", "#f44336");
+
+        // Show retry button
+        showRetryButton(backupId);
+    } finally {
+        state.isGenerating = false;
+    }
+}
+
+/**
+ * Check for pending audio backups on page load.
+ * Shows the retry button near Ditar if there are failed/pending backups.
+ */
+async function checkPendingBackups() {
+    const pending = await getPendingBackups();
+    if (pending.length > 0) {
+        const latest = pending[0];
+        toast(`📦 ${pending.length} áudio(s) pendente(s). Clique 🔄 Reenviar.`, "error");
+        showRetryButton(latest.id);
     }
 }
 

@@ -97,3 +97,8 @@ export function deleteReport(id: string): boolean {
     const result = getDb().run("DELETE FROM reports WHERE id = ?", [id]);
     return result.changes > 0;
 }
+
+export function deleteAllReports(): number {
+    const result = getDb().run("DELETE FROM reports");
+    return result.changes;
+}

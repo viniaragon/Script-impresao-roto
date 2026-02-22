@@ -175,15 +175,32 @@ export async function generateReport(
     }
 
     try {
-        const result = await callAI(MASTER_PROMPT, userMessage, 0.3);
+        // Inject current date into prompt template
+        const now = new Date();
+        const dataAtual = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
+        const promptWithDate = MASTER_PROMPT.replace("{{DATA_ATUAL}}", dataAtual);
+
+        const result = await callAI(promptWithDate, userMessage, 0.3);
 
         // Clean up thinking tags if model returns them
         let report = result.content.trim();
         report = report.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
 
+        // Extract exam type from the report title (first line)
+        let examType = "Auto-Detectado";
+        const titleMatch = report.match(/LAUDO DE ULTRASSONOGRAFIA\s+(D[AEIO]S?\s+)?(.+)/i);
+        if (titleMatch) {
+            // Clean up: "DO ABDÔMEN TOTAL" → "Abdômen Total"
+            let raw = titleMatch[2].trim();
+            // Title case
+            examType = "USG " + raw
+                .toLowerCase()
+                .replace(/\b\w/g, (c: string) => c.toUpperCase());
+        }
+
         return {
             report,
-            examType: "Auto-Detectado",
+            examType,
             model: result.model,
             provider: result.provider,
             tokensUsed: result.tokensUsed,

@@ -13,6 +13,10 @@ export async function generateDocx(
     const paragraphs: Paragraph[] = [];
 
     // Header structure (removed "LAUDO MÉDICO" as requested)
+    // Reserve 8 blank lines at the top for clinic letterhead
+    for (let i = 0; i < 8; i++) {
+        paragraphs.push(new Paragraph({ text: "", spacing: { after: 0 } }));
+    }
 
     let isSectionTitle = false;
 

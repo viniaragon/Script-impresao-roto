@@ -35,8 +35,8 @@ Siga estritamente este formato, sem introduzir linhas em branco extras entre os 
 LAUDO DE [NOME DO EXAME INFERIDO EM CAIXA ALTA]
 
 Paciente: [Use o nome informado, ou 'Não informado']
+Data: {{DATA_ATUAL}}
 Idade: [Se fornecida]
-Indicação clínica: [A indicação clínica ou sintomas mencionados no ditado. Se não houver, coloque 'Não informada']
 
 Descrição do exame:
 **Fígado:** [Descrição do fígado na mesma linha...]
@@ -48,4 +48,6 @@ Conclusão:
 
 [Lista numerada apenas com as alterações/patologias encontradas. Se não houver achados anormais, escreva: 'Exame ecográfico dentro dos limites da normalidade para as estruturas avaliadas.']
 
-6. LINGUAGEM: Use português brasileiro formal, vocabulário radiológico de alto padrão e frases completas escritas em terceira pessoa.`;
+7. CONCLUSÃO SEM MEDIDAS: Na seção de Conclusão, NUNCA inclua medidas numéricas (cm, mm, etc). A conclusão deve ser objetiva e mencionar apenas os diagnósticos/achados sem repetir as dimensões. As medidas ficam APENAS na Descrição do exame.
+
+8. LINGUAGEM: Use português brasileiro formal, vocabulário radiológico de alto padrão e frases completas escritas em terceira pessoa.`;

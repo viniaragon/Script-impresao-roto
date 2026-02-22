@@ -38,10 +38,21 @@
                         ↩️ Sair
                     </button>
                 </div>
-                <button class="btn btn--ghost" id="btn-history" title="Histórico de laudos">
-                    📋 Histórico
-                </button>
-            </div>
+                <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                    <button class="btn btn--accent" id="btn-voice-mode" title="Ativar modo de comando por voz">
+                        🎧 Modo Voz
+                    </button>
+                    <span class="voice-status" id="voice-status"
+                        style="display:none; font-size: 0.8rem; color: var(--text-muted);">
+                        ● Idle
+                    </span>
+                    <button class="btn btn--ghost" id="btn-settings" title="Configurações de exportação">
+                        ⚙️
+                    </button>
+                    <button class="btn btn--ghost" id="btn-history" title="Histórico de laudos">
+                        📋 Histórico
+                    </button>
+                </div>
         </header>
 
         <!-- Main Grid: Input | Output -->
@@ -59,6 +70,11 @@
                         <div class="patient-input-group">
                             <input type="text" id="patientName" placeholder="Nome do paciente (opcional)"
                                 autocomplete="off">
+                            <button id="retryAudioBtn" class="record-btn" title="Reenviar áudio salvo"
+                                style="display:none; background: var(--error-color); color: #fff;">
+                                <span class="icon">🔄</span>
+                                <span class="text">Reenviar</span>
+                            </button>
                             <button id="recordBtn" class="record-btn" title="Ditar laudo por voz">
                                 <span class="icon">🎤</span>
                                 <span class="text">Ditar</span>
@@ -117,16 +133,50 @@
     <div class="history-panel" id="history-panel">
         <div class="history-panel__header">
             <span class="panel__title">📋 Histórico de Laudos</span>
-            <button class="btn btn--ghost" id="btn-close-history">✕</button>
+            <div style="display: flex; gap: var(--space-sm);">
+                <button class="btn btn--ghost" id="btn-clear-history"
+                    style="color: var(--error-color); font-size: 0.75rem;">🗑️ Limpar Tudo</button>
+                <button class="btn btn--ghost" id="btn-close-history">✕</button>
+            </div>
         </div>
         <div class="history-panel__body" id="history-list">
             <!-- Populated by JS -->
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="overlay" id="settings-overlay" style="display:none;"></div>
+    <div class="settings-modal" id="settings-modal" style="display:none;">
+        <div class="settings-modal__header">
+            <span class="panel__title">⚙️ Configurações de Exportação</span>
+            <button class="btn btn--ghost" id="btn-close-settings">✕</button>
+        </div>
+        <div class="settings-modal__body" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <label style="font-weight: bold; color: var(--text-primary); display: block; margin-bottom: 0.4rem;">📄
+                    Pasta para arquivos Word (.docx):</label>
+                <input type="text" id="settings-docx-path" class="refine-input" placeholder="Ex: C:\Laudos\Word"
+                    style="width: 100%;">
+            </div>
+            <div>
+                <label style="font-weight: bold; color: var(--text-primary); display: block; margin-bottom: 0.4rem;">📑
+                    Pasta para arquivos PDF (.pdf):</label>
+                <input type="text" id="settings-pdf-path" class="refine-input" placeholder="Ex: C:\Laudos\PDF"
+                    style="width: 100%;">
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">
+                💡 Os laudos serão salvos automaticamente nestas pastas ao usar o comando de voz "eco gerar". Se deixar
+                vazio, a exportação automática será desativada.
+            </p>
+            <button class="btn btn--accent" id="btn-save-settings" style="align-self: flex-end;">💾 Salvar
+                Configurações</button>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
+    <script src="audio-backup.js"></script>
     <script src="app.js"></script>
 </body>
 
