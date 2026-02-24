@@ -52,16 +52,16 @@ export interface GenerateReportResponse {
 async function callAI(
     systemPrompt: string,
     userMessage: string,
-    temperature: number = 0.3,
-    useGateway: boolean = false
+    temperature: number = 0.3
 ): Promise<{ content: string; model: string; provider: string; tokensUsed?: number }> {
-    // If gateway is requested and online, use it
-    if (useGateway && isGatewayOnline()) {
+    // ALWAYS prefer the CLI Gateway when it's online
+    if (isGatewayOnline()) {
         console.log("🔌 Usando CLI Gateway para gerar laudo...");
         const requestId = randomUUID();
         return sendToGateway(requestId, systemPrompt, userMessage);
     }
 
+    // Fallback to configured provider
     const provider = getActiveProvider();
 
     if (provider === "chatgpt") {
