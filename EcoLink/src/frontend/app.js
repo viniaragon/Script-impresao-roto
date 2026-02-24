@@ -4,6 +4,101 @@
 // ============================================================
 
 const API_BASE = (window.ECOLINK_CONFIG?.API_URL || "") + "/api";
+const AUTH_BASE = (window.ECOLINK_CONFIG?.API_URL || "");
+
+// ---- API Key Auth ----
+let currentApiKey = localStorage.getItem("ecolink_api_key") || "";
+
+/**
+ * Wrapper around fetch that auto-injects X-API-Key header.
+ * Use this instead of raw fetch() for all API calls.
+ */
+function apiFetch(url, options = {}) {
+    if (currentApiKey) {
+        options.headers = {
+            ...(options.headers || {}),
+            "X-API-Key": currentApiKey,
+        };
+    }
+    return fetch(url, options);
+}
+
+function showLoginOverlay() {
+    document.getElementById("login-overlay").style.display = "flex";
+}
+
+function hideLoginOverlay() {
+    document.getElementById("login-overlay").style.display = "none";
+}
+
+function initAuth() {
+    const overlay = document.getElementById("login-overlay");
+    const input = document.getElementById("login-apikey");
+    const submit = document.getElementById("login-submit");
+    const skip = document.getElementById("login-skip");
+    const errorEl = document.getElementById("login-error");
+
+    // Show login if no API key stored AND we are on a remote deployment
+    const isRemote = !!window.ECOLINK_CONFIG?.API_URL;
+    if (isRemote && !currentApiKey) {
+        showLoginOverlay();
+    }
+
+    submit.addEventListener("click", async () => {
+        const key = input.value.trim();
+        if (!key) {
+            errorEl.textContent = "Cole sua API Key.";
+            errorEl.style.display = "block";
+            return;
+        }
+
+        // Validate the key against the server
+        submit.disabled = true;
+        submit.textContent = "⏳ Verificando...";
+
+        try {
+            const res = await fetch(`${API_BASE}/gateway/status`, {
+                headers: { "X-API-Key": key }
+            });
+
+            if (res.status === 401) {
+                errorEl.textContent = "❌ Chave inválida ou revogada.";
+                errorEl.style.display = "block";
+                submit.disabled = false;
+                submit.textContent = "🔑 Entrar";
+                return;
+            }
+
+            // Key is valid!
+            currentApiKey = key;
+            localStorage.setItem("ecolink_api_key", key);
+            hideLoginOverlay();
+
+            // Reload app data
+            init();
+        } catch (err) {
+            errorEl.textContent = "❌ Erro ao conectar com o servidor.";
+            errorEl.style.display = "block";
+            submit.disabled = false;
+            submit.textContent = "🔑 Entrar";
+        }
+    });
+
+    skip.addEventListener("click", () => {
+        hideLoginOverlay();
+    });
+
+    // Enter key to submit
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") submit.click();
+    });
+}
+
+function logoutApiKey() {
+    currentApiKey = "";
+    localStorage.removeItem("ecolink_api_key");
+    showLoginOverlay();
+}
 
 // ---- State ----
 let state = {
@@ -80,6 +175,7 @@ let pendingRetryBackupId = null;
 
 // ---- Initialize ----
 async function init() {
+    initAuth();
     await checkAuthStatus();
     loadHistory();
     bindEvents();
@@ -90,7 +186,7 @@ async function init() {
 
 // ---- API Calls ----
 async function apiCall(path, options = {}) {
-    const res = await fetch(`${API_BASE}${path}`, {
+    const res = await apiFetch(`${API_BASE}${path}`, {
         headers: { "Content-Type": "application/json" },
         ...options,
     });
@@ -486,7 +582,7 @@ async function uploadAndTranscribe(blob, existingBackupId) {
         const formData = new FormData();
         formData.append('audio', blob, 'dictation.webm');
 
-        const res = await fetch(`${API_BASE}/transcribe`, {
+        const res = await apiFetch(`${API_BASE}/transcribe`, {
             method: 'POST',
             body: formData
         });
@@ -649,7 +745,7 @@ function bindEvents() {
 async function checkAuthStatus() {
     try {
         const baseUrl = window.ECOLINK_CONFIG?.API_URL || "";
-        const res = await fetch(`${baseUrl}/auth/status`);
+        const res = await apiFetch(`${baseUrl}/auth/status`);
         const data = await res.json();
 
         state.authProvider = data.provider;

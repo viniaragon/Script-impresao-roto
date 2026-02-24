@@ -14,6 +14,20 @@
 
 <body>
 
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="login-overlay" style="display:none;">
+        <div class="login-box">
+            <h2>🩺 EcoLink</h2>
+            <p>Insira sua chave de acesso para continuar</p>
+            <input type="text" id="login-apikey" placeholder="Cole sua API Key aqui (ek_...)" autocomplete="off"
+                style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); font-size: 1rem; margin: 1rem 0;">
+            <button id="login-submit" class="btn btn--accent" style="width: 100%; padding: 0.8rem;">🔑 Entrar</button>
+            <p id="login-error" style="color: var(--error-color); margin-top: 0.5rem; display:none;"></p>
+            <button id="login-skip" class="btn btn--ghost"
+                style="width: 100%; margin-top: 0.5rem; font-size: 0.8rem;">Pular (uso local)</button>
+        </div>
+    </div>
+
     <div class="app">
         <!-- Header -->
         <header class="header">

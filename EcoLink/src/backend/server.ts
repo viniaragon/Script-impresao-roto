@@ -9,8 +9,11 @@ import { serveStatic } from "hono/bun";
 import path from "path";
 import { initDatabase } from "./services/db-service.js";
 import { initAIService } from "./services/ai-service.js";
+import { initApiKeysTable } from "./services/apikey-service.js";
+import { handleGatewayConnection, handleGatewayMessage, handleGatewayClose } from "./services/gateway-hub.js";
 import { api } from "./routes/api.js";
 import { auth } from "./routes/auth.js";
+import { admin } from "./routes/admin.js";
 
 // Load environment variables
 const envPath = path.join(import.meta.dir, "../../.env");
@@ -32,6 +35,7 @@ const PORT = Number(process.env.PORT || 3210);
 
 // Initialize services
 initDatabase();
+initApiKeysTable();
 
 const openRouterKey = process.env.OPENROUTER_API_KEY;
 if (!openRouterKey) {
@@ -52,6 +56,9 @@ app.route("/api", api);
 
 // Auth routes under /auth
 app.route("/auth", auth);
+
+// Admin routes under /api/admin
+app.route("/api/admin", admin);
 
 // Serve frontend static files
 const frontendDir = path.join(import.meta.dir, "../frontend");
@@ -78,7 +85,37 @@ console.log(`
 ╚══════════════════════════════════════════════╝
 `);
 
-export default {
+// ---- Bun Server with WebSocket support ----
+
+const server = Bun.serve<{ apiKey: string }>({
     port: PORT,
-    fetch: app.fetch,
-};
+    fetch(req, server) {
+        const url = new URL(req.url);
+
+        // WebSocket upgrade for CLI Gateway
+        if (url.pathname === "/ws/gateway") {
+            const apiKey = url.searchParams.get("key") || "";
+            const upgraded = server.upgrade(req, { data: { apiKey } });
+            if (upgraded) return undefined;
+            return new Response("WebSocket upgrade failed", { status: 400 });
+        }
+
+        // All other requests go to Hono
+        return app.fetch(req);
+    },
+    websocket: {
+        open(ws) {
+            const apiKey = (ws.data as any)?.apiKey || "";
+            handleGatewayConnection(ws, apiKey);
+        },
+        message(ws, message) {
+            handleGatewayMessage(ws, message as string);
+        },
+        close(ws) {
+            handleGatewayClose(ws);
+        },
+    },
+});
+
+console.log(`🌐 WebSocket Gateway disponível em ws://localhost:${PORT}/ws/gateway`);
+

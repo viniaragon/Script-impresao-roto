@@ -4,7 +4,8 @@
     "description": "EcoLink - Automação de Laudos de Ultrasonografia com IA",
     "scripts": {
         "dev": "bun run --watch src/backend/server.ts",
-        "start": "bun run src/backend/server.ts"
+        "start": "bun run src/backend/server.ts",
+        "gateway": "bun run cli-gateway.ts"
     },
     "keywords": [
         "ultrasonografia",

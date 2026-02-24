@@ -10,6 +10,7 @@ import {
     getAccessToken,
     isAuthenticated,
 } from "./auth-service.js";
+import { isGatewayOnline, sendToGateway, getGatewayInfo } from "./gateway-hub.js";
 import { exec } from "child_process";
 import fs from "fs/promises";
 import path from "path";
@@ -51,8 +52,16 @@ export interface GenerateReportResponse {
 async function callAI(
     systemPrompt: string,
     userMessage: string,
-    temperature: number = 0.3
+    temperature: number = 0.3,
+    useGateway: boolean = false
 ): Promise<{ content: string; model: string; provider: string; tokensUsed?: number }> {
+    // If gateway is requested and online, use it
+    if (useGateway && isGatewayOnline()) {
+        console.log("🔌 Usando CLI Gateway para gerar laudo...");
+        const requestId = randomUUID();
+        return sendToGateway(requestId, systemPrompt, userMessage);
+    }
+
     const provider = getActiveProvider();
 
     if (provider === "chatgpt") {
@@ -61,6 +70,9 @@ async function callAI(
         return callOpenRouter(systemPrompt, userMessage, temperature);
     }
 }
+
+// Re-export gateway info for API routes
+export { isGatewayOnline, getGatewayInfo };
 
 // ---- OpenRouter ----
 

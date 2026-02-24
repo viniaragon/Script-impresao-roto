@@ -4,14 +4,34 @@
 // ============================================================
 
 import { Hono } from "hono";
-import { generateReport, refineReport } from "../services/ai-service.js";
+import { generateReport, refineReport, isGatewayOnline, getGatewayInfo } from "../services/ai-service.js";
 import { transcribeAudio } from "../services/voice-service.js";
 import { generateDocx } from "../services/doc-service.js";
 import { autoExport } from "../services/export-service.js";
 import { getSettings, saveSettings } from "../services/settings-service.js";
 import { createReport, listReports, getReportById, updateReport, deleteReport, deleteAllReports } from "../services/db-service.js";
+import { validateApiKey } from "../services/apikey-service.js";
 
 export const api = new Hono();
+
+// ---- API Key Middleware ----
+// If an X-API-Key header is present, validate it.
+// If no key is provided, allow access (for local dev without keys).
+api.use("*", async (c, next) => {
+    const apiKey = c.req.header("X-API-Key");
+    if (apiKey) {
+        const keyRecord = validateApiKey(apiKey);
+        if (!keyRecord) {
+            return c.json({ error: "API Key inválida ou revogada." }, 401);
+        }
+    }
+    await next();
+});
+
+// ---- Gateway Status ----
+api.get("/gateway/status", (c) => {
+    return c.json(getGatewayInfo());
+});
 
 // ---- Generate Report (CORE endpoint) ----
 
