@@ -38,9 +38,9 @@ function initAuth() {
     const skip = document.getElementById("login-skip");
     const errorEl = document.getElementById("login-error");
 
-    // Show login if no API key stored AND we are on a remote deployment
-    const isRemote = !!window.ECOLINK_CONFIG?.API_URL;
-    if (isRemote && !currentApiKey) {
+    // Show login if no API key stored AND we are NOT on localhost
+    const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    if (!isLocal && !currentApiKey) {
         showLoginOverlay();
     }
 
